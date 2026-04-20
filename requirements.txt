@@ -1,6 +1,0 @@
-streamlit
-psycopg2-binary
-pandas
-requests
-pydeck
-geopy
