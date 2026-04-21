@@ -4,13 +4,17 @@
 
 (function () {
   const { RX_STATE } = window.RX_ENGINE;
-  const { generateFleet } = window.RX_DATA;
+  
+  // Update to grab the new database fetching function
+  const { fetchFleetFromDB } = window.RX_DATA;
 
   const HISTORY_KEY = 'ridex_history_v1';
 
-  function boot() {
-    // Generate fleet
-    RX_STATE.fleet = generateFleet(18);
+  // Changed to an async function to wait for Supabase
+  async function boot() {
+    
+    // Fetch live drivers from Supabase Database instead of generating mock ones
+    RX_STATE.fleet = await fetchFleetFromDB();
 
     // Init map first (needs DOM)
     window.RX_MAP.initMap();
