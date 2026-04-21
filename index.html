@@ -12,7 +12,6 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Device Simulator Sidebar -->
   <aside id="sidebar" class="sidebar">
     <div class="sidebar-header">
       <div class="logo">
@@ -64,9 +63,7 @@
     </div>
   </aside>
 
-  <!-- Main Content -->
   <main class="main-wrap">
-    <!-- Top bar -->
     <header class="topbar">
       <button id="sidebar-toggle" class="icon-btn"><i class="fas fa-bars"></i></button>
       <div class="topbar-title">
@@ -78,14 +75,10 @@
       </div>
     </header>
 
-    <!-- Split layout -->
     <div class="split">
-      <!-- Left: Interface Panels -->
       <section class="panel-col">
-        <!-- ============ PASSENGER VIEW ============ -->
         <div id="passenger-view" class="view active">
 
-          <!-- STATE: IDLE (Search) -->
           <div class="state-card" data-state="idle">
             <h2 class="card-title">Plan your ride</h2>
             <p class="card-sub">Pick up and drop off, anywhere in Surat.</p>
@@ -122,7 +115,6 @@
             </button>
           </div>
 
-          <!-- STATE: SELECTING (Driver choice) -->
           <div class="state-card hidden" data-state="selecting">
             <div class="state-header">
               <button class="back-btn" data-back-to="idle"><i class="fas fa-arrow-left"></i></button>
@@ -134,7 +126,6 @@
             <div id="driver-cards" class="driver-cards"></div>
           </div>
 
-          <!-- STATE: DRIVER_PENDING -->
           <div class="state-card hidden" data-state="pending">
             <div class="pulse-wrap">
               <div class="pulse"></div>
@@ -153,7 +144,6 @@
             <button id="cancel-pending" class="btn-ghost"><i class="fas fa-xmark"></i> Cancel request</button>
           </div>
 
-          <!-- STATE: MATCHED (Driver on the way) -->
           <div class="state-card hidden" data-state="matched">
             <div class="matched-header">
               <div>
@@ -187,7 +177,6 @@
             </div>
           </div>
 
-          <!-- STATE: ACCEPTED (In-transit + UberPool) -->
           <div class="state-card hidden" data-state="accepted">
             <div class="trip-header">
               <div>
@@ -240,7 +229,6 @@
             </div>
           </div>
 
-          <!-- STATE: COMPLETE (Receipt) -->
           <div class="state-card hidden" data-state="complete">
             <div class="receipt-head">
               <i class="fas fa-circle-check success"></i>
@@ -279,10 +267,8 @@
 
         </div>
 
-        <!-- ============ DRIVER VIEW ============ -->
         <div id="driver-view" class="view">
 
-          <!-- Driver Header -->
           <div class="driver-head-card">
             <div class="driver-head-left">
               <div class="avatar lg" id="d-avatar">D</div>
@@ -299,7 +285,6 @@
             </div>
           </div>
 
-          <!-- Driver State: IDLE -->
           <div class="state-card" data-d-state="idle">
             <div class="big-icon"><i class="fas fa-signal"></i></div>
             <h2 class="card-title center">Looking for rides</h2>
@@ -311,7 +296,6 @@
             </div>
           </div>
 
-          <!-- Driver State: PENDING (Incoming ping) -->
           <div class="state-card alert hidden" data-d-state="pending">
             <div class="incoming-flash">
               <i class="fas fa-bell"></i> NEW RIDE REQUEST
@@ -340,7 +324,6 @@
             </div>
           </div>
 
-          <!-- Driver State: MATCHED (En route to pickup) -->
           <div class="state-card hidden" data-d-state="matched">
             <div class="nav-head">
               <i class="fas fa-location-arrow"></i>
@@ -356,7 +339,6 @@
             </div>
           </div>
 
-          <!-- Driver State: ACCEPTED (On trip) -->
           <div class="state-card hidden" data-d-state="accepted">
             <div class="nav-head purple">
               <i class="fas fa-flag-checkered"></i>
@@ -376,7 +358,6 @@
             </div>
           </div>
 
-          <!-- Driver State: COMPLETE -->
           <div class="state-card hidden" data-d-state="complete">
             <div class="receipt-head">
               <i class="fas fa-circle-check success"></i>
@@ -391,7 +372,6 @@
         </div>
       </section>
 
-      <!-- Right: Map -->
       <section class="map-col">
         <div id="map"></div>
         <div class="map-legend">
@@ -404,8 +384,8 @@
     </div>
   </main>
 
-  <!-- Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="data.js"></script>
   <script src="engine.js"></script>
   <script src="map.js"></script>
