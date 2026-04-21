@@ -1,9 +1,14 @@
 /* ==========================================================
-   RideX — Mock Data
-   Surat, Gujarat area with real coordinates
+   RideX — Real Database Connection via Supabase API
    ========================================================== */
 
-// Popular Surat locations with real lat/lng
+// 1. Your Supabase Credentials
+const SUPABASE_URL = 'https://ifyryonjxnwozvicwfrz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_jCBRyM_UZVh93va758xKXw_jGwvjY3k';
+
+// Initialize Supabase Client
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const LOCATIONS = [
   { name: "Surat Railway Station", lat: 21.2055, lng: 72.8397 },
   { name: "VR Mall Surat", lat: 21.1450, lng: 72.7766 },
@@ -19,56 +24,50 @@ const LOCATIONS = [
   { name: "Iscon Mall", lat: 21.1667, lng: 72.7889 },
 ];
 
-// Vehicle models with tier multipliers
-const VEHICLES = [
-  // UberGo / UberX (hatchback) - 1.0x
-  { model: "Maruti Swift", tier: "UberGo", capacity: 4, multiplier: 1.0 },
-  { model: "Hyundai i20", tier: "UberGo", capacity: 4, multiplier: 1.0 },
-  { model: "Tata Tiago", tier: "UberGo", capacity: 4, multiplier: 1.0 },
-  { model: "Wagon R", tier: "UberGo", capacity: 4, multiplier: 1.0 },
-  // Sedan - 1.2x
-  { model: "Maruti Dzire", tier: "UberX Sedan", capacity: 4, multiplier: 1.2 },
-  { model: "Honda City", tier: "UberX Sedan", capacity: 4, multiplier: 1.2 },
-  { model: "Hyundai Aura", tier: "UberX Sedan", capacity: 4, multiplier: 1.2 },
-  // SUV - 1.5x
-  { model: "Toyota Innova", tier: "UberXL SUV", capacity: 6, multiplier: 1.5 },
-  { model: "Tata Nexon", tier: "UberXL SUV", capacity: 5, multiplier: 1.5 },
-  { model: "Mahindra XUV", tier: "UberXL SUV", capacity: 6, multiplier: 1.5 },
-];
+const CORIDER_NAMES = ["Priya", "Neha", "Rahul", "Sneha", "Aarav", "Isha", "Karan", "Meera"];
 
-// Indian driver first names
-const DRIVER_NAMES = [
-  "Ramesh P.", "Suresh K.", "Mahesh S.", "Vijay R.", "Ajay M.",
-  "Sanjay D.", "Rajesh T.", "Dinesh B.", "Kiran V.", "Nilesh G.",
-  "Mukesh A.", "Bhavesh S.", "Hardik P.", "Jignesh K.", "Hitesh R.",
-  "Kalpesh M.", "Parth D.", "Rohit J.", "Aniket P.", "Chirag V.",
-];
+// Fetch the fleet live from the Supabase Database Function!
+async function fetchFleetFromDB() {
+  try {
+    // Calling the SQL function we created in Supabase
+    const { data, error } = await supabase.rpc('get_active_drivers');
+    
+    if (error) throw error;
+    
+    // Format the database rows to match what our frontend expects
+    return data.map((driver, index) => {
+      // Determine tier based on model
+      let tier = "UberGo", multiplier = 1.0;
+      const modelLower = driver.vehicle_model ? driver.vehicle_model.toLowerCase() : "";
+      
+      if (modelLower.includes("innova") || modelLower.includes("suv") || modelLower.includes("nexon") || modelLower.includes("creta")) {
+        tier = "UberXL SUV"; multiplier = 1.5;
+      } else if (modelLower.includes("city") || modelLower.includes("dzire") || modelLower.includes("sedan")) {
+        tier = "UberX Sedan"; multiplier = 1.2;
+      }
 
-// Co-rider names for UberPool
-const CORIDER_NAMES = [
-  "Priya", "Neha", "Rahul", "Sneha", "Aarav", "Isha", "Karan", "Meera"
-];
-
-// Generate a random GJ-05 (Surat) plate number
-function randomPlate() {
-  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-  const l1 = letters[Math.floor(Math.random() * letters.length)];
-  const l2 = letters[Math.floor(Math.random() * letters.length)];
-  const num = String(Math.floor(1000 + Math.random() * 8999));
-  return `GJ-05-${l1}${l2}-${num}`;
+      return {
+        id: driver.id,
+        name: driver.name,
+        // Generating mock phone numbers here to avoid the earlier DB error
+        phone: `+91 98240 ${10000 + index}`, 
+        rating: driver.rating || "4.8",
+        plate: driver.plate,
+        vehicle: { model: driver.vehicle_model, tier: tier, multiplier: multiplier },
+        lat: driver.lat,
+        lng: driver.lng,
+        isActive: true
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching from Supabase:", error);
+    return []; // Return empty array if connection fails so the app doesn't crash
+  }
 }
 
-// Generate a realistic +91 phone number
-function randomPhone() {
-  const prefixes = ["98", "97", "99", "93", "94", "90"];
-  const pref = prefixes[Math.floor(Math.random() * prefixes.length)];
-  const rest = String(Math.floor(10000000 + Math.random() * 89999999));
-  return `+91 ${pref}${rest.slice(0, 3)}-${rest.slice(3)}`;
-}
-
-// Random point within ~3km radius of center (Surat ~21.17, 72.83)
+// Utility to bounce drivers slightly so the map looks alive between rides
 function randomNearby(center, radiusKm = 3) {
-  const r = radiusKm / 111; // roughly degrees
+  const r = radiusKm / 111; 
   const u = Math.random();
   const v = Math.random();
   const w = r * Math.sqrt(u);
@@ -78,42 +77,10 @@ function randomNearby(center, radiusKm = 3) {
   return { lat: center.lat + dLat, lng: center.lng + dLng };
 }
 
-// Create fleet of drivers scattered around Surat
-function generateFleet(count = 18) {
-  const center = { lat: 21.1702, lng: 72.8311 };
-  const fleet = [];
-  const usedNames = new Set();
-  for (let i = 0; i < count; i++) {
-    let name;
-    do { name = DRIVER_NAMES[Math.floor(Math.random() * DRIVER_NAMES.length)]; }
-    while (usedNames.has(name) && usedNames.size < DRIVER_NAMES.length);
-    usedNames.add(name);
-
-    const vehicle = VEHICLES[Math.floor(Math.random() * VEHICLES.length)];
-    const pos = randomNearby(center, 4);
-    fleet.push({
-      id: `DRV-${1000 + i}`,
-      name,
-      phone: randomPhone(),
-      rating: (4.5 + Math.random() * 0.49).toFixed(2),
-      plate: randomPlate(),
-      vehicle: { ...vehicle },
-      lat: pos.lat,
-      lng: pos.lng,
-      isActive: true,
-    });
-  }
-  return fleet;
-}
-
-// Export to window
+// Export the updated fetching function to the rest of the app
 window.RX_DATA = {
   LOCATIONS,
-  VEHICLES,
-  DRIVER_NAMES,
   CORIDER_NAMES,
-  randomPlate,
-  randomPhone,
-  randomNearby,
-  generateFleet,
+  fetchFleetFromDB,
+  randomNearby
 };
