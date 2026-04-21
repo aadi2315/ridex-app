@@ -6,8 +6,8 @@
 const SUPABASE_URL = 'https://ifyryonjxnwozvicwfrz.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_jCBRyM_UZVh93va758xKXw_jGwvjY3k';
 
-// Initialize Supabase Client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// FIXED: Renamed to supabaseClient so it doesn't conflict with the library!
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const LOCATIONS = [
   { name: "Surat Railway Station", lat: 21.2055, lng: 72.8397 },
@@ -29,14 +29,13 @@ const CORIDER_NAMES = ["Priya", "Neha", "Rahul", "Sneha", "Aarav", "Isha", "Kara
 // Fetch the fleet live from the Supabase Database Function!
 async function fetchFleetFromDB() {
   try {
-    // Calling the SQL function we created in Supabase
-    const { data, error } = await supabase.rpc('get_active_drivers');
+    // Calling the SQL function using our newly renamed client
+    const { data, error } = await supabaseClient.rpc('get_active_drivers');
     
     if (error) throw error;
     
     // Format the database rows to match what our frontend expects
     return data.map((driver, index) => {
-      // Determine tier based on model
       let tier = "UberGo", multiplier = 1.0;
       const modelLower = driver.vehicle_model ? driver.vehicle_model.toLowerCase() : "";
       
@@ -49,7 +48,6 @@ async function fetchFleetFromDB() {
       return {
         id: driver.id,
         name: driver.name,
-        // Generating mock phone numbers here to avoid the earlier DB error
         phone: `+91 98240 ${10000 + index}`, 
         rating: driver.rating || "4.8",
         plate: driver.plate,
@@ -61,7 +59,7 @@ async function fetchFleetFromDB() {
     });
   } catch (error) {
     console.error("Error fetching from Supabase:", error);
-    return []; // Return empty array if connection fails so the app doesn't crash
+    return []; 
   }
 }
 
